@@ -120,14 +120,15 @@ def crawling_kyochon():
                 break
 
             bs = BeautifulSoup(html, 'html.parser')
+            # print("bs === ", bs)
 
             tag_div = bs.find('div', attrs={"class" : "shopSchList"})
             # print("tag_table === ", tag_div)
             tag_ul = tag_div.find('ul', attrs={"class" : "list"})
             # print("tag_ul === ", tag_ul)
-            tag_li = tag_ul.find('li')
+            # tag_li = tag_ul.find('li')
             # print("tag_li === ", tag_li)
-            tag_dl = tag_li.findAll('dl')
+            tag_dl = tag_ul.findAll('dl')
             # print("tag_dl === ", tag_dl)
             # tag_dt = tag_dl.find('dt')
             # print("tag_dt === ", tag_dt)
