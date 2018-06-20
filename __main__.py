@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import xml.etree.ElementTree as et
 import collection.crawler as cw
 from collection.data_dict import sido_dict, gungu_dict
+import re
 
 # def my_error(e):
 #     print("myerror:" + str(e))
@@ -50,7 +51,7 @@ def crawling_pelicana():
 
         for tag_tr in tags_tr:
             strings = list(tag_tr.strings)
-            # print("strings === ",strings)
+            print("strings === ",strings)
 
             name = strings[1]
             address = strings[3]
@@ -119,20 +120,56 @@ def crawling_kyochon():
                 break
 
             bs = BeautifulSoup(html, 'html.parser')
+            # print("bs === ", bs)
 
             tag_div = bs.find('div', attrs={"class" : "shopSchList"})
             # print("tag_table === ", tag_div)
-            tag_ul = tag_div.find('ul')
+            tag_ul = tag_div.find('ul', attrs={"class" : "list"})
             # print("tag_ul === ", tag_ul)
-            tag_li = tag_ul.find('li')
+            # tag_li = tag_ul.find('li')
             # print("tag_li === ", tag_li)
-            tag_dl = tag_li.find('dl')
-            print("tag_dl === ", tag_dl)
+            tag_dl = tag_ul.findAll('dl')
+            # print("tag_dl === ", tag_dl)
             # tag_dt = tag_dl.find('dt')
             # print("tag_dt === ", tag_dt)
-            tag_dd = tag_dl.find('dd')
-            print("tag_dd === ", tag_dd)
+            # tag_dd = tag_dl.findAll('dd')
+            # print("tag_dd === ", tag_dd)
 
+            for dl in tag_dl:
+                # print("dl ==== loop ",dl)
+                try:
+                    strings = list(dl.strings)
+                    print("strings === ", strings)
+
+                    print("strings[1] =====", strings[1])
+                    name = strings[1] + "점"
+                    address = strings[3]
+                    # print(strings[3])
+                    address_after = re.sub("[\rnt]", "", address)
+                    # print("address_after === ",address_after)
+                    address_strip = address_after.strip()
+                    print("address_after.strip() === ", address_strip)
+                    sidogu = address.split()[:2]
+                    print("sidogu === ", sidogu)
+
+                    results.append((name, address_strip) + tuple(sidogu))
+
+                    print("results === ", results)
+                except Exception as e:
+                    print("오류 === ", e)
+                    continue
+
+
+
+    table = pd.DataFrame(results, columns=['name', 'address', 'sido', 'gungu'])
+    table['sido'] = table.sido.apply(lambda v: sido_dict.get(v, v))
+    table['gungu'] = table.gungu.apply(lambda v: gungu_dict.get(v, v))
+
+    table.to_csv(  # 파일 저장
+        '{0}/kyochon_table.csv'.format(RESULT_DIRECTORY),
+        encoding='utf-8',
+        mode='w',
+        index=True)
 
 if __name__ == '__main__':
 
