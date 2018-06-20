@@ -28,5 +28,6 @@ def crawling(url = '',
         return result
 
     except Exception as e:
+        print("에러는 여기서 생겨욬ㅋ")
         err(e)
         # print('%s : %s' % (e, datetime.now()), file=sys.stderr)
