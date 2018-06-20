@@ -6,13 +6,13 @@ from bs4 import BeautifulSoup
 request = Request('https://movie.naver.com/movie/sdb/rank/rmovie.nhn')
 resp = urlopen(request)
 html = resp.read().decode('cp949')
-# print(html)
+# print("html === ",html)
 
 bs = BeautifulSoup(html, 'html.parser')
-# print(bs.prettify())
+print("bs.prettify ===", bs.prettify())
 
 tags = bs.findAll('div', attrs={'class':'tit3'})   # findAll 리스트형식으로 나온다
-# print(tags)
+print("tags === ",tags)
 
 for index, tag in enumerate(tags):
     print(index+1, tag.a.text, tag.a['href'], sep=' : ')   # tag 밑에 a 태그 밑에 text만 출력
