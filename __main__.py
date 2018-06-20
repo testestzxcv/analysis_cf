@@ -110,12 +110,12 @@ def crawling_kyochon():
             print("sido1 === ", sido1)
             print("sido2 === ", sido2)
             url = 'http://www.kyochon.com/shop/domestic.asp?sido1=%d&sido2=%d&txtsearch=' % (sido1, sido2)
-            print("url===",url)
+            # print("url===",url)
             html = cw.crawling(url=url)
-            print("html === ",html)
+            # print("html === ",html)
 
             if html == None:
-                print("None")
+                print("파일없어요")
                 break
 
             bs = BeautifulSoup(html, 'html.parser')
