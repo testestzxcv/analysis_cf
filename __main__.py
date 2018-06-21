@@ -1,5 +1,10 @@
 import urllib
 import pandas as pd
+import time
+from datetime import datetime
+
+import sys
+from selenium import webdriver
 from itertools import count
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as et
@@ -105,7 +110,7 @@ def store_nene(data):
 
 def crawling_kyochon():
     results = []
-    condition = False
+
     for sido1 in range(1, 18):
         for sido2 in count(start=1):
             print("sido1 === ", sido1)
@@ -171,6 +176,161 @@ def crawling_kyochon():
         mode='w',
         index=True)
 
+def crawling_goobne():
+    url = 'http://www.goobne.co.kr/store/search_store.jsp'
+
+    # 첫 페이지 로딩
+    wd = webdriver.Chrome('D:/bigdata/chromedriver/chromedriver.exe')
+    wd.get(url)
+    time.sleep(5)
+
+    results = []
+    for page in count(start=1):
+        # 자바스크립트 실행
+        # <a href="javascript:store.getList('3');">3</a> url이 아니라 자바 스크립트를 실행시킨다는 의미
+        script = 'store.getList(%d)' % page
+        wd.execute_script(script)   # 스크립트 실행
+        print('%s : success for script execute [%s]' % (datetime.now(), script))
+        time.sleep(5)
+
+        # 실행결과 HTML(rendering된 HTML) 가져오기
+        html = wd.page_source  # 소스 가져오기
+
+        # parsing with bs4
+        bs = BeautifulSoup(html, 'html.parser')
+        tag_tbody = bs.find('tbody', attrs={'id': 'store_list'})
+        tags_tr = tag_tbody.findAll('tr')
+
+        # 마지막 검출
+        if tags_tr[0].get('class') is None: # <tr class="on 이부분이 on이 아니면 클래스가 없다는 의미
+            break
+
+        for tag_tr in tags_tr:
+            strings = list(tag_tr.strings)
+            name = strings[1]
+            address = strings[6]
+            sidogu = address.split()[:2]
+
+            results.append((name, address) + tuple(sidogu))
+
+    print(results)
+
+    # store
+    table = pd.DataFrame(results, columns=['name', 'address', 'sido', 'gungu'])
+
+    table['sido'] = table.sido.apply(lambda v: sido_dict.get(v, v)) # get(v, v) 의 의미는 앞의 v 값이 없으면 뒤의 v값을 리턴해준다.
+    table['gungu'] = table.gungu.apply(lambda v: gungu_dict.get(v, v))
+
+    table.to_csv(  # 파일 저장
+        '{0}/gooubne_table.csv'.format(RESULT_DIRECTORY),
+        encoding='utf-8',
+        mode='w',
+        index=True)
+
+
+def crawling_cu():
+    url = 'http://cu.bgfretail.com/store/list.do?category=store'
+
+    wd = webdriver.Chrome('D:/bigdata/chromedriver/chromedriver.exe')
+    wd.get(url)
+    # time.sleep(2)
+
+    results = []
+    for page in range(1, 201):
+        script = 'newsPage(%d)' % page
+        wd.execute_script(script)  # 스크립트 실행
+        print('%s : success for script execute [%s]' % (datetime.now(), script))
+        time.sleep(1)
+
+        html = wd.page_source
+        # print(html)
+
+        bs = BeautifulSoup(html, 'html.parser')
+        tag_div = bs.find('div', attrs={'class':'detail_store'})
+        tag_tbody = tag_div.find('tbody')
+        # print("tag_tbody === ", tag_tbody)
+        tags_tr = tag_tbody.findAll('tr')
+        # print("tag_tr === ", tags_tr)
+
+        # 마지막 검출
+        if tags_tr == []:
+            print("끄~~~~~~~~~~~~~~~~~~읕!!!!!!!!!!!")
+            break
+
+        for tag_tr in tags_tr:
+            strings = list(tag_tr.strings)
+            # print("strings === ",strings)
+            name = strings[2]
+            phone = strings[4]
+            address = strings[10]
+            sidogu = address.split()[:2]
+
+            results.append((name, address, phone) + tuple(sidogu))
+
+    print(results)
+
+    # store
+    table = pd.DataFrame(results, columns=['name', 'address','phone', 'sido', 'gungu'])
+
+    table['sido'] = table.sido.apply(lambda v: sido_dict.get(v, v))
+    table['gungu'] = table.gungu.apply(lambda v: gungu_dict.get(v, v))
+
+    table.to_csv(  # 파일 저장
+        '{0}/cu_table.csv'.format(RESULT_DIRECTORY),
+        encoding='utf-8',
+        mode='w',
+        index=True)
+
+
+def crawling_mnet():
+    results = []
+
+    for year in range(2017, 2018):
+        for page in range(1, 3):
+            print("page === ",page)
+            url = 'http://www.mnet.com/chart/TOP100/%d?pNum=%d' % (year, page)
+            print("url === ", url)
+
+            html = cw.crawling(url=url)
+            # print("html === ", html)
+
+            if html == None:
+                print("파일없어요")
+                break
+
+            bs = BeautifulSoup(html, 'html.parser')
+            # print("bs === ", bs)
+
+            tags_tr = bs.find('tr')
+            print('tags_tr:',tags_tr)
+
+            # print("type all=== ", type(tags_tr))
+            # print("tag_tr === ", tag_tr)
+            # tag_title = bs.find('div', attrs={"class" : "MMLITitle_Box info"} )
+            # tag_rank = tag_title.findAll('div', attrs={'class':'MMLITitle_Info'})
+
+            # for tag_tr in tags_tr:
+                # print("type find ==", type(tag_title))
+
+                # tag_title = bs.findAll('td')
+                # tag_rank = bs.findAll('td')
+
+                # print("tag_title === ", tag_title)
+                # print("tag_rank === ",tag_rank)
+
+                # strings = list(tag_tr.strings)
+                # strings = list(tag_tr.strings)
+                # print("strings === ", strings)
+                #
+                # rank = strings[2]
+                # title = strings[13]
+                #
+                # print("rank === ", rank)
+                # print("title === ", t)
+
+
+
+
 if __name__ == '__main__':
 
     # pelicana
@@ -184,4 +344,13 @@ if __name__ == '__main__':
     #     store=store_nene)
 
     # kyochon
-    crawling_kyochon()
+    # crawling_kyochon()
+
+    # goobne
+    # crawling_goobne()
+
+    # cu
+    # crawling_cu()
+
+    # mnet
+    crawling_mnet()
