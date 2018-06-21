@@ -285,7 +285,8 @@ def crawling_cu():
 def crawling_mnet():
     results = []
 
-    for year in range(2017, 2018):
+    for year in range(2008, 2018):
+        temp_year = "{0}년".format(year)
         for page in range(1, 3):
             print("page === ",page)
             url = 'http://www.mnet.com/chart/TOP100/%d?pNum=%d' % (year, page)
@@ -301,34 +302,36 @@ def crawling_mnet():
             bs = BeautifulSoup(html, 'html.parser')
             # print("bs === ", bs)
 
-            tags_tr = bs.find('tr')
-            print('tags_tr:',tags_tr)
+            tags_tr = bs.findAll('tr')
+            # print('tags_tr === ',tags_tr)
 
-            # print("type all=== ", type(tags_tr))
-            # print("tag_tr === ", tag_tr)
-            # tag_title = bs.find('div', attrs={"class" : "MMLITitle_Box info"} )
-            # tag_rank = tag_title.findAll('div', attrs={'class':'MMLITitle_Info'})
-
-            # for tag_tr in tags_tr:
-                # print("type find ==", type(tag_title))
-
-                # tag_title = bs.findAll('td')
-                # tag_rank = bs.findAll('td')
-
-                # print("tag_title === ", tag_title)
-                # print("tag_rank === ",tag_rank)
-
-                # strings = list(tag_tr.strings)
-                # strings = list(tag_tr.strings)
+            for tag_tr in tags_tr:
+                strings = list(tag_tr.strings)
                 # print("strings === ", strings)
-                #
-                # rank = strings[2]
-                # title = strings[13]
-                #
-                # print("rank === ", rank)
-                # print("title === ", t)
+                if strings == []:
+                    break
 
+                rank = strings[2]
+                title = strings[14]
+                if rank == "\n":
+                    continue
 
+                print("year === ", temp_year)
+                print("rank === ", rank)
+                print("title === ", title)
+
+                results.append((temp_year, rank, title))
+
+                # print("results === ", results)
+
+    table = pd.DataFrame(results, columns=['year','rank','title'])
+    table= table.set_index('year')
+
+    table.to_csv(
+        '{0}/mnet_table.csv'.format(RESULT_DIRECTORY),
+        encoding='utf-8',
+        mode='w',
+        index=True)
 
 
 if __name__ == '__main__':
